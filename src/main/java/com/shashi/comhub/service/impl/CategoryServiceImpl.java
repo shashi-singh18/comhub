@@ -95,8 +95,9 @@ public class CategoryServiceImpl implements CategoryService {
 
         Category updatedCategory = categoryRepository.save(existingCategory);;
 
-        logger.info("Category with id={} updated",
-                id
+        logger.info("Category with id={}, name={} updated",
+                id,
+                category.getName()
         );
 
         return updatedCategory;
