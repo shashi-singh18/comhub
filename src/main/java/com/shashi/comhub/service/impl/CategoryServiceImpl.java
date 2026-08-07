@@ -1,41 +1,50 @@
 package com.shashi.comhub.service.impl;
 
+import com.shashi.comhub.dto.CategoryRequest;
+import com.shashi.comhub.dto.CategoryResponse;
 import com.shashi.comhub.entity.Category;
 import com.shashi.comhub.exception.CategoryAlreadyExistsException;
 import com.shashi.comhub.exception.CategoryNotFoundException;
+import com.shashi.comhub.mapper.CategoryMapper;
 import com.shashi.comhub.repository.CategoryRepository;
 import com.shashi.comhub.service.CategoryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
 public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository categoryRepository;
+    private final CategoryMapper categoryMapper;
     private static final Logger logger =
             LoggerFactory.getLogger(CategoryServiceImpl.class);
 
-    public CategoryServiceImpl(CategoryRepository categoryRepository) {
+    public CategoryServiceImpl(CategoryRepository categoryRepository,
+                               CategoryMapper categoryMapper) {
         this.categoryRepository = categoryRepository;
+        this.categoryMapper = categoryMapper;
     }
 
     @Override
-    public Category createCategory(Category category) {
+    @Transactional
+    public CategoryResponse createCategory(CategoryRequest request) {
         logger.info("Creating category with name={}",
-                category.getName()
+                request.getName()
         );
 
-        if(categoryRepository.existsByName(category.getName())) {
-            logger.warn("Category {} already exists",
-                    category.getName()
-            );
+        if (categoryRepository.existsByName(request.getName())) {
+
+            logger.warn("Category {} already exists", request.getName());
 
             throw new CategoryAlreadyExistsException(
-                    "Category '" + category.getName() + "' already exists."
+                    "Category '" + request.getName() + "' already exists."
             );
         }
+
+        Category category = categoryMapper.toEntity(request);
 
         Category savedCategory = categoryRepository.save(category);
 
@@ -44,77 +53,91 @@ public class CategoryServiceImpl implements CategoryService {
                 savedCategory.getName()
         );
 
-        return savedCategory;
+        return categoryMapper.toResponse(savedCategory);
     }
 
     @Override
-    public List<Category> getAllCategories() {
+    @Transactional(readOnly = true)
+    public List<CategoryResponse> getAllCategories() {
+        logger.info("Fetching all categories");
+
         List<Category> categories = categoryRepository.findAll();
 
         logger.info("Fetched {} categories", categories.size());
 
-        return categories;
+        return categories.stream().map(categoryMapper::toResponse).toList();
     }
 
     @Override
-    public Category getCategoryById(Long id) {
-        Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> {
-                    logger.warn("Category not found with id={}", id);
+    @Transactional(readOnly = true)
+    public CategoryResponse getCategoryById(Long id) {
+        logger.info("Fetching category with id={}",
+                id
+        );
 
-                    return new CategoryNotFoundException("Category not found with id=" + id);
-                });
+        Category category = getCategoryEntityById(id);
 
         logger.info("Fetched category with id={}",
                 id
         );
 
-        return category;
+        return categoryMapper.toResponse(category);
     }
 
     @Override
-    public Category updateCategory(Long id, Category category) {
+    @Transactional
+    public CategoryResponse updateCategory(Long id, CategoryRequest request) {
         logger.info("Updating category with id={}, name={}",
                 id,
-                category.getName());
+                request.getName());
 
-        if(categoryRepository.existsByName(category.getName())) {
-            logger.warn("Category {} already exists",
-                    category.getName()
-            );
+        Category existingCategory = getCategoryEntityById(id);
+
+        if (!existingCategory.getName().equals(request.getName())
+                && categoryRepository.existsByName(request.getName())) {
 
             throw new CategoryAlreadyExistsException(
-                    "Category '" + category.getName() + "' already exists."
+                    "Category '" + request.getName() + "' already exists."
             );
         }
 
-        Category existingCategory = getCategoryById(id);
+        existingCategory.setName(request.getName());
+        existingCategory.setDescription(request.getDescription());
 
-        existingCategory.setName(category.getName());
-        existingCategory.setDescription(category.getDescription());
-
-        Category updatedCategory = categoryRepository.save(existingCategory);;
+        Category updatedCategory = categoryRepository.save(existingCategory);
 
         logger.info("Category with id={}, name={} updated",
                 id,
-                category.getName()
+                updatedCategory.getName()
         );
 
-        return updatedCategory;
+        return categoryMapper.toResponse(updatedCategory);
     }
 
     @Override
+    @Transactional
     public void deleteCategory(Long id) {
         logger.info("Category with id={} is being deleted",
                 id
         );
 
-        Category existingCategory = getCategoryById(id);
+        Category existingCategory = getCategoryEntityById(id);
 
         categoryRepository.delete(existingCategory);
 
         logger.info("Category deleted successfully. id={}",
                 id
         );
+    }
+
+    private Category getCategoryEntityById(Long id) {
+        return categoryRepository.findById(id)
+                .orElseThrow(() -> {
+                    logger.warn("Category not found with id={}", id);
+
+                    return new CategoryNotFoundException(
+                            "Category not found with id=" + id
+                    );
+                });
     }
 }

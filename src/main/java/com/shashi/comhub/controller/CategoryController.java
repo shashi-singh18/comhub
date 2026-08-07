@@ -3,8 +3,6 @@ package com.shashi.comhub.controller;
 import com.shashi.comhub.dto.CategoryRequest;
 import com.shashi.comhub.dto.CategoryResponse;
 import com.shashi.comhub.dto.error.ErrorResponse;
-import com.shashi.comhub.entity.Category;
-import com.shashi.comhub.mapper.CategoryMapper;
 import com.shashi.comhub.service.CategoryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -33,12 +31,9 @@ public class CategoryController {
             LoggerFactory.getLogger(CategoryController.class);
 
     private final CategoryService categoryService;
-    private final CategoryMapper categoryMapper;
 
-    public CategoryController(CategoryService categoryService,
-                              CategoryMapper categoryMapper) {
+    public CategoryController(CategoryService categoryService) {
         this.categoryService = categoryService;
-        this.categoryMapper = categoryMapper;
     }
 
     @Operation(
@@ -59,11 +54,7 @@ public class CategoryController {
 
         logger.info("Received request to create category. name={}", request.getName());
 
-        Category category = categoryMapper.toEntity(request);
-
-        Category savedCategory = categoryService.createCategory(category);
-
-        CategoryResponse response = categoryMapper.toResponse(savedCategory);
+        CategoryResponse response = categoryService.createCategory(request);
 
         logger.info("Returning response. Category created successfully. id={}", response.getId());
 
@@ -78,10 +69,7 @@ public class CategoryController {
 
         logger.info("Received request to fetch all categories.");
 
-        List<CategoryResponse> response = categoryService.getAllCategories()
-                .stream()
-                .map(categoryMapper::toResponse)
-                .toList();
+        List<CategoryResponse> response = categoryService.getAllCategories();
 
         logger.info("Returning {} categories.", response.size());
 
@@ -95,8 +83,7 @@ public class CategoryController {
 
         logger.info("Received request to fetch category. id={}", id);
 
-        CategoryResponse response =
-                categoryMapper.toResponse(categoryService.getCategoryById(id));
+        CategoryResponse response = categoryService.getCategoryById(id);
 
         logger.info("Returning category. id={}", id);
 
@@ -111,13 +98,12 @@ public class CategoryController {
 
         logger.info("Received request to update category. id={}", id);
 
-        Category category = categoryMapper.toEntity(request);
+        CategoryResponse response = categoryService.updateCategory(id, request);
 
-        CategoryResponse response =
-                categoryMapper.toResponse(
-                        categoryService.updateCategory(id, category));
-
-        logger.info("Returning updated category. id={}", id);
+        logger.info("Returning updated category. id={}, name={}",
+                id,
+                response.getName()
+        );
 
         return ResponseEntity.ok(response);
     }

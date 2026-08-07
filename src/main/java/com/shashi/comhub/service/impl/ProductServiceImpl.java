@@ -1,43 +1,47 @@
 package com.shashi.comhub.service.impl;
 
 import com.shashi.comhub.dto.ProductRequest;
+import com.shashi.comhub.dto.ProductResponse;
 import com.shashi.comhub.entity.Category;
 import com.shashi.comhub.entity.Product;
+import com.shashi.comhub.exception.CategoryNotFoundException;
 import com.shashi.comhub.exception.ProductNotFoundException;
 import com.shashi.comhub.mapper.ProductMapper;
+import com.shashi.comhub.repository.CategoryRepository;
 import com.shashi.comhub.repository.ProductRepository;
-import com.shashi.comhub.service.CategoryService;
 import com.shashi.comhub.service.ProductService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
 public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
-    private final CategoryService categoryService;
+    private final CategoryRepository categoryRepository;
     private final ProductMapper productMapper;
 
     private static final Logger logger =
             LoggerFactory.getLogger(ProductServiceImpl.class);
 
     public ProductServiceImpl(ProductRepository productRepository,
-                              CategoryService categoryService,
+                              CategoryRepository categoryRepository,
                               ProductMapper productMapper) {
         this.productRepository = productRepository;
-        this.categoryService = categoryService;
+        this.categoryRepository = categoryRepository;
         this.productMapper = productMapper;
     }
 
     @Override
-    public Product createProduct(ProductRequest request) {
+    @Transactional
+    public ProductResponse createProduct(ProductRequest request) {
         logger.info("Creating product with name={}",
                 request.getName()
         );
 
-        Category category = categoryService.getCategoryById(request.getCategoryId());
+        Category category = getCategoryEntityById(request.getCategoryId());
 
         Product product = productMapper.toEntity(request);
         product.setCategory(category);
@@ -49,43 +53,41 @@ public class ProductServiceImpl implements ProductService {
                 savedProduct.getName()
         );
 
-        return savedProduct;
+        return productMapper.toResponse(savedProduct);
     }
 
     @Override
-    public List<Product> getAllProducts() {
+    @Transactional(readOnly = true)
+    public List<ProductResponse> getAllProducts() {
         logger.info("Fetching all products");
 
         List<Product> products = productRepository.findAll();
 
         logger.info("Fetched {} products", products.size());
 
-        return products;
+        return products.stream().map(productMapper::toResponse).toList();
     }
 
     @Override
-    public Product getProductById(Long id) {
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> {
-                    logger.warn("Product not found with id={}", id);
-
-                    return new ProductNotFoundException("Product not found with id=" + id);
-                });
+    @Transactional(readOnly = true)
+    public ProductResponse getProductById(Long id) {
+        Product product = getProductEntityById(id);
 
         logger.info("Fetched product with id={}",
                 id
         );
 
-        return product;
+        return productMapper.toResponse(product);
     }
 
     @Override
-    public Product updateProduct(Long id, ProductRequest request) {
+    @Transactional
+    public ProductResponse updateProduct(Long id, ProductRequest request) {
         logger.info("Updating product with id={}, name={}",
                 id,
                 request.getName());
 
-        Product existingProduct = getProductById(id);
+        Product existingProduct = getProductEntityById(id);
 
         existingProduct.setName(request.getName());
         existingProduct.setDescription(request.getDescription());
@@ -94,7 +96,7 @@ public class ProductServiceImpl implements ProductService {
         existingProduct.setImageUrl(request.getImageUrl());
         existingProduct.setStock(request.getStock());
 
-        Category category = categoryService.getCategoryById(request.getCategoryId());
+        Category category = getCategoryEntityById(request.getCategoryId());
 
         existingProduct.setCategory(category);
 
@@ -105,21 +107,44 @@ public class ProductServiceImpl implements ProductService {
                 request.getName()
         );
 
-        return updatedProduct;
+        return productMapper.toResponse(updatedProduct);
     }
 
     @Override
+    @Transactional
     public void deleteProduct(Long id) {
         logger.info("Product with id={} is being deleted",
                 id
         );
 
-        Product product = getProductById(id);
+        Product product = getProductEntityById(id);
 
         productRepository.delete(product);
 
         logger.info("Product deleted successfully. id={}",
                 id
         );
+    }
+
+    private Product getProductEntityById(Long id) {
+        return productRepository.findById(id)
+                .orElseThrow(() -> {
+                    logger.warn("Product not found with id={}", id);
+
+                    return new ProductNotFoundException(
+                            "Product not found with id=" + id
+                    );
+                });
+    }
+
+    private Category getCategoryEntityById(Long id) {
+        return categoryRepository.findById(id)
+                .orElseThrow(() -> {
+                    logger.warn("Category not found with id={}", id);
+
+                    return new CategoryNotFoundException(
+                            "Category not found with id=" + id
+                    );
+                });
     }
 }

@@ -1,5 +1,7 @@
 package com.shashi.comhub.service;
 
+import com.shashi.comhub.dto.CategoryRequest;
+import com.shashi.comhub.dto.CategoryResponse;
 import com.shashi.comhub.entity.Category;
 import com.shashi.comhub.exception.CategoryAlreadyExistsException;
 import com.shashi.comhub.exception.CategoryNotFoundException;
@@ -7,13 +9,13 @@ import com.shashi.comhub.exception.CategoryNotFoundException;
 import java.util.List;
 
 public interface CategoryService {
-    Category createCategory(Category category);
+    CategoryResponse createCategory(CategoryRequest request);
 
-    List<Category> getAllCategories();
+    List<CategoryResponse> getAllCategories();
 
-    Category getCategoryById(Long id);
+    CategoryResponse getCategoryById(Long id);
 
-    Category updateCategory(Long id, Category category);
+    CategoryResponse updateCategory(Long id, CategoryRequest request);
 
     void deleteCategory(Long id);
 }

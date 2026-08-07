@@ -33,12 +33,9 @@ public class ProductController {
             LoggerFactory.getLogger(ProductController.class);
 
     private final ProductService productService;
-    private final ProductMapper productMapper;
 
-    public ProductController(ProductService productService,
-                             ProductMapper productMapper) {
+    public ProductController(ProductService productService) {
         this.productService = productService;
-        this.productMapper = productMapper;
     }
 
     @Operation(summary = "Create product")
@@ -56,9 +53,7 @@ public class ProductController {
 
         logger.info("Received request to create product. name={}", request.getName());
 
-        Product product = productService.createProduct(request);
-
-        ProductResponse response = productMapper.toResponse(product);
+        ProductResponse response = productService.createProduct(request);
 
         logger.info("Returning response. Product created successfully. id={}", response.getId());
 
@@ -73,11 +68,7 @@ public class ProductController {
 
         logger.info("Received request to fetch all products.");
 
-        List<ProductResponse> response =
-                productService.getAllProducts()
-                        .stream()
-                        .map(productMapper::toResponse)
-                        .toList();
+        List<ProductResponse> response = productService.getAllProducts();
 
         logger.info("Returning {} products.", response.size());
 
@@ -91,9 +82,7 @@ public class ProductController {
 
         logger.info("Received request to fetch product. id={}", id);
 
-        ProductResponse response =
-                productMapper.toResponse(
-                        productService.getProductById(id));
+        ProductResponse response = productService.getProductById(id);
 
         logger.info("Returning product. id={}", id);
 
@@ -108,11 +97,12 @@ public class ProductController {
 
         logger.info("Received request to update product. id={}", id);
 
-        ProductResponse response =
-                productMapper.toResponse(
-                        productService.updateProduct(id, request));
+        ProductResponse response = productService.updateProduct(id, request);
 
-        logger.info("Returning updated product. id={}", id);
+        logger.info("Returning updated product. id={}, name={}",
+                id,
+                response.getName()
+        );
 
         return ResponseEntity.ok(response);
     }
