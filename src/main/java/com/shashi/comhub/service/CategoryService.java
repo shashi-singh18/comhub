@@ -2,16 +2,14 @@ package com.shashi.comhub.service;
 
 import com.shashi.comhub.dto.CategoryRequest;
 import com.shashi.comhub.dto.CategoryResponse;
-import com.shashi.comhub.entity.Category;
-import com.shashi.comhub.exception.CategoryAlreadyExistsException;
-import com.shashi.comhub.exception.CategoryNotFoundException;
+import com.shashi.comhub.dto.common.PageResponse;
 
-import java.util.List;
+import org.springframework.data.domain.Pageable;
 
 public interface CategoryService {
     CategoryResponse createCategory(CategoryRequest request);
 
-    List<CategoryResponse> getAllCategories();
+    PageResponse<CategoryResponse> getAllCategories(Pageable pageable);
 
     CategoryResponse getCategoryById(Long id);
 

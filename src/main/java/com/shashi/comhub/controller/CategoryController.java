@@ -2,6 +2,7 @@ package com.shashi.comhub.controller;
 
 import com.shashi.comhub.dto.CategoryRequest;
 import com.shashi.comhub.dto.CategoryResponse;
+import com.shashi.comhub.dto.common.PageResponse;
 import com.shashi.comhub.dto.error.ErrorResponse;
 import com.shashi.comhub.service.CategoryService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -13,11 +14,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/categories")
@@ -65,13 +66,18 @@ public class CategoryController {
 
     @Operation(summary = "Get all categories")
     @GetMapping
-    public ResponseEntity<List<CategoryResponse>> getAllCategories() {
+    public ResponseEntity<PageResponse<CategoryResponse>> getAllCategories(@ParameterObject Pageable pageable) {
 
-        logger.info("Received request to fetch all categories.");
+        logger.info(
+                "Received request to fetch categories. page={}, size={}, sort={}",
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                pageable.getSort()
+        );
 
-        List<CategoryResponse> response = categoryService.getAllCategories();
+        PageResponse<CategoryResponse> response = categoryService.getAllCategories(pageable);
 
-        logger.info("Returning {} categories.", response.size());
+        logger.info("Returning {} categories.", response.getData().size());
 
         return ResponseEntity.ok(response);
     }

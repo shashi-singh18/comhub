@@ -2,30 +2,36 @@ package com.shashi.comhub.service.impl;
 
 import com.shashi.comhub.dto.CategoryRequest;
 import com.shashi.comhub.dto.CategoryResponse;
+import com.shashi.comhub.dto.common.PageResponse;
 import com.shashi.comhub.entity.Category;
 import com.shashi.comhub.exception.CategoryAlreadyExistsException;
 import com.shashi.comhub.exception.CategoryNotFoundException;
 import com.shashi.comhub.mapper.CategoryMapper;
+import com.shashi.comhub.mapper.PageMapper;
 import com.shashi.comhub.repository.CategoryRepository;
 import com.shashi.comhub.service.CategoryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 
 @Service
 public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository categoryRepository;
     private final CategoryMapper categoryMapper;
+    private final PageMapper pageMapper;
     private static final Logger logger =
             LoggerFactory.getLogger(CategoryServiceImpl.class);
 
     public CategoryServiceImpl(CategoryRepository categoryRepository,
-                               CategoryMapper categoryMapper) {
+                               CategoryMapper categoryMapper,
+                               PageMapper pageMapper) {
         this.categoryRepository = categoryRepository;
         this.categoryMapper = categoryMapper;
+        this.pageMapper = pageMapper;
     }
 
     @Override
@@ -58,14 +64,24 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<CategoryResponse> getAllCategories() {
-        logger.info("Fetching all categories");
+    public PageResponse<CategoryResponse> getAllCategories(Pageable pageable) {
+        logger.info(
+                "Fetching categories. page={}, size={}, sort={}",
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                pageable.getSort()
+        );
 
-        List<Category> categories = categoryRepository.findAll();
+        Page<Category> categories = categoryRepository.findAll(pageable);
 
-        logger.info("Fetched {} categories", categories.size());
+        logger.info("Fetched page {} containing {} categories out of {} total categories.",
+                categories.getNumber(),
+                categories.getNumberOfElements(),
+                categories.getTotalElements());
 
-        return categories.stream().map(categoryMapper::toResponse).toList();
+        Page<CategoryResponse> categoryResponse = categories.map(categoryMapper::toResponse);
+
+        return pageMapper.toPageResponse(categoryResponse);
     }
 
     @Override

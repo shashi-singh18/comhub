@@ -1,15 +1,15 @@
 package com.shashi.comhub.service;
 
+import com.shashi.comhub.dto.common.PageResponse;
 import com.shashi.comhub.dto.ProductRequest;
 import com.shashi.comhub.dto.ProductResponse;
-import com.shashi.comhub.entity.Product;
+import org.springframework.data.domain.Pageable;
 
-import java.util.List;
 
 public interface ProductService {
     ProductResponse createProduct(ProductRequest request);
 
-    List<ProductResponse> getAllProducts();
+    PageResponse<ProductResponse> getAllProducts(Pageable pageable);
 
     ProductResponse getProductById(Long id);
 

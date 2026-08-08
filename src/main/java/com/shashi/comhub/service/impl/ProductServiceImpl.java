@@ -1,37 +1,42 @@
 package com.shashi.comhub.service.impl;
 
+import com.shashi.comhub.dto.common.PageResponse;
 import com.shashi.comhub.dto.ProductRequest;
 import com.shashi.comhub.dto.ProductResponse;
 import com.shashi.comhub.entity.Category;
 import com.shashi.comhub.entity.Product;
 import com.shashi.comhub.exception.CategoryNotFoundException;
 import com.shashi.comhub.exception.ProductNotFoundException;
+import com.shashi.comhub.mapper.PageMapper;
 import com.shashi.comhub.mapper.ProductMapper;
 import com.shashi.comhub.repository.CategoryRepository;
 import com.shashi.comhub.repository.ProductRepository;
 import com.shashi.comhub.service.ProductService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final ProductMapper productMapper;
+    private final PageMapper pageMapper;
 
     private static final Logger logger =
             LoggerFactory.getLogger(ProductServiceImpl.class);
 
     public ProductServiceImpl(ProductRepository productRepository,
                               CategoryRepository categoryRepository,
-                              ProductMapper productMapper) {
+                              ProductMapper productMapper,
+                              PageMapper pageMapper) {
         this.productRepository = productRepository;
         this.categoryRepository = categoryRepository;
         this.productMapper = productMapper;
+        this.pageMapper = pageMapper;
     }
 
     @Override
@@ -58,14 +63,24 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<ProductResponse> getAllProducts() {
-        logger.info("Fetching all products");
+    public PageResponse<ProductResponse> getAllProducts(Pageable pageable) {
+        logger.info(
+                "Fetching products. page={}, size={}, sort={}",
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                pageable.getSort()
+        );
 
-        List<Product> products = productRepository.findAll();
+        Page<Product> products = productRepository.findAll(pageable);
 
-        logger.info("Fetched {} products", products.size());
+        logger.info("Fetched page {} containing {} products out of {} total products.",
+                products.getNumber(),
+                products.getNumberOfElements(),
+                products.getTotalElements());
 
-        return products.stream().map(productMapper::toResponse).toList();
+        Page<ProductResponse> productResponse = products.map(productMapper::toResponse);
+
+        return pageMapper.toPageResponse(productResponse);
     }
 
     @Override
