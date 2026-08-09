@@ -12,12 +12,17 @@ import com.shashi.comhub.mapper.ProductMapper;
 import com.shashi.comhub.repository.CategoryRepository;
 import com.shashi.comhub.repository.ProductRepository;
 import com.shashi.comhub.service.ProductService;
+import com.shashi.comhub.specification.ProductSpecification;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.util.List;
 
 @Service
 public class ProductServiceImpl implements ProductService {
@@ -139,6 +144,48 @@ public class ProductServiceImpl implements ProductService {
         logger.info("Product deleted successfully. id={}",
                 id
         );
+    }
+
+    @Override
+    public PageResponse<ProductResponse> searchProducts(String name,
+                                                        String brand,
+                                                        BigDecimal minPrice,
+                                                        BigDecimal maxPrice,
+                                                        Pageable pageable) {
+        logger.info(
+                "Fetching products with name={}, brand={}, minPrice{}, maxPrice{}, page={}, size={}, sort={}",
+                name,
+                brand,
+                minPrice,
+                maxPrice,
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                pageable.getSort()
+        );
+
+        Specification<Product> specification = ProductSpecification.build(
+                name,
+                brand,
+                minPrice,
+                maxPrice
+        );
+
+        Page<Product> products = productRepository.findAll(specification, pageable);
+
+        logger.info(
+                "Fetched page {} containing {} products with name={}, brand={}, minPrice{}, maxPrice{} out of {} total products.",
+                products.getNumber(),
+                products.getNumberOfElements(),
+                name,
+                brand,
+                minPrice,
+                maxPrice,
+                products.getTotalElements()
+        );
+
+        Page<ProductResponse> productResponse = products.map(productMapper::toResponse);
+
+        return pageMapper.toPageResponse(productResponse);
     }
 
     private Product getProductEntityById(Long id) {

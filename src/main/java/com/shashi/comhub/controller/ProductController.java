@@ -20,6 +20,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
+
 @RestController
 @RequestMapping("/api/v1/products")
 @Tag(
@@ -74,7 +76,7 @@ public class ProductController {
 
         PageResponse<ProductResponse> response = productService.getAllProducts(pageable);
 
-        logger.info("Returning {} products.", response.getSize());
+        logger.info("Returning {} products.", response.getData().size());
 
         return ResponseEntity.ok(response);
     }
@@ -123,5 +125,50 @@ public class ProductController {
         logger.info("Product deleted successfully. id={}", id);
 
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(
+            summary = "Search products by name, brand, minimum price, or maximum price",
+            description = "Fetches all products belonging to the specified search criteria."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Products fetched successfully"
+            )
+    })
+    @GetMapping("/search")
+    public ResponseEntity<PageResponse<ProductResponse>> searchProducts(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String brand,
+            @RequestParam(required = false) BigDecimal minPrice,
+            @RequestParam(required = false) BigDecimal maxPrice,
+            @ParameterObject Pageable pageable
+    ) {
+
+        logger.info(
+                "Received request to fetch products. name={}, brand={}, minPrice={}, maxPrice={}, page={}, size={}, sort={}",
+                name,
+                brand,
+                minPrice,
+                maxPrice,
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                pageable.getSort()
+        );
+
+        PageResponse<ProductResponse> response =
+                productService.searchProducts(name, brand, minPrice, maxPrice, pageable);
+
+        logger.info(
+                "Returning {} products with name={}, brand={}, minPrice={}, maxPrice={}",
+                response.getData().size(),
+                name,
+                brand,
+                minPrice,
+                maxPrice
+        );
+
+        return ResponseEntity.ok(response);
     }
 }
