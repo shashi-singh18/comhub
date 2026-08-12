@@ -112,6 +112,12 @@ public class CategoryServiceImpl implements CategoryService {
         if (!existingCategory.getName().equals(request.getName())
                 && categoryRepository.existsByName(request.getName())) {
 
+            logger.warn(
+                    "Cannot update category id={}. Category name '{}' already exists.",
+                    id,
+                    request.getName()
+            );
+
             throw new CategoryAlreadyExistsException(
                     "Category '" + request.getName() + "' already exists."
             );
