@@ -85,10 +85,17 @@ public class CategoryServiceImplTest {
 
     @Test
     void shouldCreateCategoryWhenCategoryNameDoesNotExists() {
-        when(categoryRepository.existsByName(categoryRequest.getName())).thenReturn(false);
-        when(categoryMapper.toEntity(categoryRequest)).thenReturn(category);
-        when(categoryRepository.save(category)).thenReturn(category);
-        when(categoryMapper.toResponse(category)).thenReturn(categoryResponse);
+        when(categoryRepository.existsByName(categoryRequest.getName()))
+                .thenReturn(false);
+
+        when(categoryMapper.toEntity(categoryRequest))
+                .thenReturn(category);
+
+        when(categoryRepository.save(category))
+                .thenReturn(category);
+
+        when(categoryMapper.toResponse(category))
+                .thenReturn(categoryResponse);
 
         CategoryResponse response = categoryService.createCategory(categoryRequest);
 
@@ -103,7 +110,8 @@ public class CategoryServiceImplTest {
 
     @Test
     void shouldThrowExceptionWhenCategoryNameExists() {
-        when(categoryRepository.existsByName(category.getName())).thenReturn(true);
+        when(categoryRepository.existsByName(category.getName()))
+                .thenReturn(true);
 
         CategoryAlreadyExistsException exception =
                 assertThrows(CategoryAlreadyExistsException.class,
@@ -128,9 +136,14 @@ public class CategoryServiceImplTest {
                         1
                 );
 
-        when(categoryRepository.findAll(pageable)).thenReturn(categoryPage);
-        when(categoryMapper.toResponse(category)).thenReturn(categoryResponse);
-        when(pageMapper.toPageResponse(any(Page.class))).thenReturn(pageResponse);
+        when(categoryRepository.findAll(pageable))
+                .thenReturn(categoryPage);
+
+        when(categoryMapper.toResponse(category))
+                .thenReturn(categoryResponse);
+
+        when(pageMapper.toPageResponse(any(Page.class)))
+                .thenReturn(pageResponse);
 
         PageResponse<CategoryResponse> response = categoryService.getAllCategories(pageable);
 
@@ -143,7 +156,7 @@ public class CategoryServiceImplTest {
     }
 
     @Test
-    void shouldReturnEmptyListWhenNoCategoryExists() {
+    void shouldReturnEmptyPageWhenNoCategoryExists() {
         Pageable pageable = PageRequest.of(0, 10);
 
         Page<Category> emptyPage =
@@ -153,8 +166,11 @@ public class CategoryServiceImplTest {
                         0
                 );
 
-        when(categoryRepository.findAll(pageable)).thenReturn(emptyPage);
-        when(pageMapper.toPageResponse(any(Page.class))).thenReturn(emptyPageResponse);
+        when(categoryRepository.findAll(pageable))
+                .thenReturn(emptyPage);
+
+        when(pageMapper.toPageResponse(any(Page.class)))
+                .thenReturn(emptyPageResponse);
 
         PageResponse<CategoryResponse> response = categoryService.getAllCategories(pageable);
 
@@ -168,8 +184,11 @@ public class CategoryServiceImplTest {
     @Test
     void shouldReturnCategoryWhenIdExists() {
         //Arrange
-        when(categoryRepository.findById(10L)).thenReturn(Optional.of(category));
-        when(categoryMapper.toResponse(category)).thenReturn(categoryResponse);
+        when(categoryRepository.findById(10L))
+                .thenReturn(Optional.of(category));
+
+        when(categoryMapper.toResponse(category))
+                .thenReturn(categoryResponse);
 
         //Act
         CategoryResponse response = categoryService.getCategoryById(10L);
@@ -184,7 +203,8 @@ public class CategoryServiceImplTest {
 
     @Test
     void shouldThrowExceptionWhenGettingCategoryDoesNotExist() {
-        when(categoryRepository.findById(100L)).thenReturn(Optional.empty());
+        when(categoryRepository.findById(100L))
+                .thenReturn(Optional.empty());
 
         CategoryNotFoundException exception =
                 assertThrows(CategoryNotFoundException.class,
@@ -199,9 +219,14 @@ public class CategoryServiceImplTest {
 
     @Test
     void shouldUpdateCategoryWhenCategoryNameRemainsSame() {
-        when(categoryRepository.findById(10L)).thenReturn(Optional.of(category));
-        when(categoryRepository.save(category)).thenReturn(category);
-        when(categoryMapper.toResponse(category)).thenReturn(categoryResponse);
+        when(categoryRepository.findById(10L))
+                .thenReturn(Optional.of(category));
+
+        when(categoryRepository.save(category))
+                .thenReturn(category);
+
+        when(categoryMapper.toResponse(category))
+                .thenReturn(categoryResponse);
 
         CategoryResponse response = categoryService.updateCategory(10L, categoryRequest);
 
@@ -224,10 +249,17 @@ public class CategoryServiceImplTest {
         updatedResponse.setName("Gadgets");
         updatedResponse.setDescription("Electronic gadgets and accessories.");
 
-        when(categoryRepository.findById(10L)).thenReturn(Optional.of(category));
-        when(categoryRepository.existsByName("Gadgets")).thenReturn(false);
-        when(categoryRepository.save(category)).thenReturn(category);
-        when(categoryMapper.toResponse(category)).thenReturn(updatedResponse);
+        when(categoryRepository.findById(10L))
+                .thenReturn(Optional.of(category));
+
+        when(categoryRepository.existsByName("Gadgets"))
+                .thenReturn(false);
+
+        when(categoryRepository.save(category))
+                .thenReturn(category);
+
+        when(categoryMapper.toResponse(category))
+                .thenReturn(updatedResponse);
 
         CategoryResponse response = categoryService.updateCategory(10L, categoryRequest);
 
@@ -245,8 +277,11 @@ public class CategoryServiceImplTest {
         category.setName("Electronics");
         categoryRequest.setName("Fashion");
 
-        when(categoryRepository.findById(10L)).thenReturn(Optional.of(category));
-        when(categoryRepository.existsByName(categoryRequest.getName())).thenReturn(true);
+        when(categoryRepository.findById(10L))
+                .thenReturn(Optional.of(category));
+
+        when(categoryRepository.existsByName(categoryRequest.getName()))
+                .thenReturn(true);
 
         CategoryAlreadyExistsException exception =
                 assertThrows(CategoryAlreadyExistsException.class,
@@ -262,7 +297,8 @@ public class CategoryServiceImplTest {
 
     @Test
     void shouldThrowExceptionWhenRequestedCategoryDoesNotExist() {
-        when(categoryRepository.findById(100L)).thenReturn(Optional.empty());
+        when(categoryRepository.findById(100L))
+                .thenReturn(Optional.empty());
 
         CategoryNotFoundException exception =
                 assertThrows(CategoryNotFoundException.class,
@@ -277,7 +313,8 @@ public class CategoryServiceImplTest {
 
     @Test
     void shouldDeleteCategoryWhenCategoryExists() {
-        when(categoryRepository.findById(category.getId())).thenReturn(Optional.of(category));
+        when(categoryRepository.findById(category.getId()))
+                .thenReturn(Optional.of(category));
 
         categoryService.deleteCategory(category.getId());
 
@@ -287,7 +324,8 @@ public class CategoryServiceImplTest {
 
     @Test
     void shouldThrowExceptionWhenDeletingCategoryDoesNotExist() {
-        when(categoryRepository.findById(100L)).thenReturn(Optional.empty());
+        when(categoryRepository.findById(100L))
+                .thenReturn(Optional.empty());
 
         CategoryNotFoundException exception =
                 assertThrows(CategoryNotFoundException.class,
