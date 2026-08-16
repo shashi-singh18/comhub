@@ -37,17 +37,23 @@ public class CategoryController {
         this.categoryService = categoryService;
     }
 
-    @Operation(
-            summary = "Create a new category",
-            description = "Creates a new product category."
-    )
+    @Operation(summary = "Create a new category")
     @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "Category created successfully",
-                    content = @Content(schema = @Schema(implementation = CategoryResponse.class))),
-            @ApiResponse(responseCode = "400", description = "Validation failed",
-                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
-            @ApiResponse(responseCode = "409", description = "Category already exists",
-                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+            @ApiResponse(
+                    responseCode = "201",
+                    description = "Category created successfully",
+                    content = @Content(schema = @Schema(implementation = CategoryResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Validation failed",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "409",
+                    description = "Category already exists",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            )
     })
     @PostMapping
     public ResponseEntity<CategoryResponse> createCategory(
@@ -65,6 +71,13 @@ public class CategoryController {
     }
 
     @Operation(summary = "Get all categories")
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Categories retrieved successfully",
+                    content = @Content(schema = @Schema(implementation = PageResponse.class))
+            )
+    })
     @GetMapping
     public ResponseEntity<PageResponse<CategoryResponse>> getAllCategories(@ParameterObject Pageable pageable) {
 
@@ -83,6 +96,18 @@ public class CategoryController {
     }
 
     @Operation(summary = "Get category by id")
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Category retrieved successfully",
+                    content = @Content(schema = @Schema(implementation = CategoryResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Category not found",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            )
+    })
     @GetMapping("/{id}")
     public ResponseEntity<CategoryResponse> getCategory(
             @PathVariable Long id) {
@@ -97,6 +122,28 @@ public class CategoryController {
     }
 
     @Operation(summary = "Update category")
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Category updated successfully",
+                    content = @Content(schema = @Schema(implementation = CategoryResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Validation failed",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Category not found",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "409",
+                    description = "Category name already exists",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            )
+    })
     @PutMapping("/{id}")
     public ResponseEntity<CategoryResponse> updateCategory(
             @PathVariable Long id,
@@ -115,6 +162,17 @@ public class CategoryController {
     }
 
     @Operation(summary = "Delete category")
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "204",
+                    description = "Category deleted successfully"
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Category not found",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            )
+    })
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCategory(
             @PathVariable Long id) {
