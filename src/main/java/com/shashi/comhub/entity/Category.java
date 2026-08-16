@@ -22,7 +22,7 @@ public class Category {
     @Column(nullable = false, unique = true, length = 100)
     private String name;
 
-    @NotBlank(message = "Description name cannot be blank")
+    @NotBlank(message = "Description cannot be blank")
     @Column(nullable = false, length = 500)
     private String description;
 }

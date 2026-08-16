@@ -171,6 +171,11 @@ public class CategoryController {
                     responseCode = "404",
                     description = "Category not found",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "409",
+                    description = "Category has products",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             )
     })
     @DeleteMapping("/{id}")

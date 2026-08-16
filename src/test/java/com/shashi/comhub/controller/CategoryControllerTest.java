@@ -4,6 +4,7 @@ import com.shashi.comhub.dto.CategoryRequest;
 import com.shashi.comhub.dto.CategoryResponse;
 import com.shashi.comhub.dto.common.PageResponse;
 import com.shashi.comhub.exception.CategoryAlreadyExistsException;
+import com.shashi.comhub.exception.CategoryHasProductsException;
 import com.shashi.comhub.exception.CategoryNotFoundException;
 import com.shashi.comhub.service.CategoryService;
 import org.junit.jupiter.api.BeforeEach;
@@ -466,5 +467,30 @@ public class CategoryControllerTest {
 
         verify(categoryService)
                 .deleteCategory(100L);
+    }
+
+    @Test
+    void shouldReturnConflictWhenDeletingCategoryWithAssociatedProducts()
+            throws Exception {
+
+        doThrow(
+                new CategoryHasProductsException(
+                        "Cannot delete category 'Gadgets' because it has associated products."
+                )
+        )
+                .when(categoryService)
+                .deleteCategory(5L);
+
+        mockMvc.perform(
+                        delete("/api/v1/categories/5")
+                )
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.message")
+                        .value(
+                                "Cannot delete category 'Gadgets' because it has associated products."
+                        ));
+
+        verify(categoryService)
+                .deleteCategory(5L);
     }
 }

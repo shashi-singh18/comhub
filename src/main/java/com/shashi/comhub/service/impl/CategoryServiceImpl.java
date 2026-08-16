@@ -5,10 +5,12 @@ import com.shashi.comhub.dto.CategoryResponse;
 import com.shashi.comhub.dto.common.PageResponse;
 import com.shashi.comhub.entity.Category;
 import com.shashi.comhub.exception.CategoryAlreadyExistsException;
+import com.shashi.comhub.exception.CategoryHasProductsException;
 import com.shashi.comhub.exception.CategoryNotFoundException;
 import com.shashi.comhub.mapper.CategoryMapper;
 import com.shashi.comhub.mapper.PageMapper;
 import com.shashi.comhub.repository.CategoryRepository;
+import com.shashi.comhub.repository.ProductRepository;
 import com.shashi.comhub.service.CategoryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,19 +19,21 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-
 @Service
 public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository categoryRepository;
+    private final ProductRepository productRepository;
     private final CategoryMapper categoryMapper;
     private final PageMapper pageMapper;
     private static final Logger logger =
             LoggerFactory.getLogger(CategoryServiceImpl.class);
 
     public CategoryServiceImpl(CategoryRepository categoryRepository,
+                               ProductRepository productRepository,
                                CategoryMapper categoryMapper,
                                PageMapper pageMapper) {
         this.categoryRepository = categoryRepository;
+        this.productRepository = productRepository;
         this.categoryMapper = categoryMapper;
         this.pageMapper = pageMapper;
     }
@@ -139,16 +143,31 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     @Transactional
     public void deleteCategory(Long id) {
-        logger.info("Category with id={} is being deleted",
-                id
-        );
+        logger.info("Category with id={} is being deleted", id);
 
         Category existingCategory = getCategoryEntityById(id);
 
+        if (productRepository.existsByCategoryId(id)) {
+
+            logger.warn(
+                    "Cannot delete category with id={} and name={} because products are associated with it",
+                    id,
+                    existingCategory.getName()
+            );
+
+            throw new CategoryHasProductsException(
+                    "Cannot delete category '" +
+                            existingCategory.getName() +
+                            "' because it has associated products."
+            );
+        }
+
         categoryRepository.delete(existingCategory);
 
-        logger.info("Category deleted successfully. id={}",
-                id
+        logger.info(
+                "Category deleted successfully. id={}, name={}",
+                id,
+                existingCategory.getName()
         );
     }
 

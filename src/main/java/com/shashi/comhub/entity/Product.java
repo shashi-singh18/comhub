@@ -26,18 +26,18 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "Category name cannot be blank")
+    @NotBlank(message = "Product name cannot be blank")
     @Column(nullable = false, length = 100)
     private String name;
 
-    @NotBlank(message = "Description name cannot be blank")
+    @NotBlank(message = "Description cannot be blank")
     @Column(nullable = false, length = 500)
     private String description;
 
     @NotNull(message = "Price cannot be null.")
     @Positive(message = "Price must be greater than zero.")
     @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal price;;
+    private BigDecimal price;
 
     @NotBlank(message = "Brand name cannot be blank")
     @Column(nullable = false, length = 100)

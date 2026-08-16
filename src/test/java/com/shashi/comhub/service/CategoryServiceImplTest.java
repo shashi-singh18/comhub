@@ -5,10 +5,12 @@ import com.shashi.comhub.dto.CategoryResponse;
 import com.shashi.comhub.dto.common.PageResponse;
 import com.shashi.comhub.entity.Category;
 import com.shashi.comhub.exception.CategoryAlreadyExistsException;
+import com.shashi.comhub.exception.CategoryHasProductsException;
 import com.shashi.comhub.exception.CategoryNotFoundException;
 import com.shashi.comhub.mapper.CategoryMapper;
 import com.shashi.comhub.mapper.PageMapper;
 import com.shashi.comhub.repository.CategoryRepository;
+import com.shashi.comhub.repository.ProductRepository;
 import com.shashi.comhub.service.impl.CategoryServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,6 +30,9 @@ import static org.mockito.Mockito.*;
 public class CategoryServiceImplTest {
     @Mock
     private CategoryRepository categoryRepository;
+
+    @Mock
+    private ProductRepository productRepository;
 
     @Mock
     private CategoryMapper categoryMapper;
@@ -334,6 +339,27 @@ public class CategoryServiceImplTest {
         assertEquals("Category not found with id=" + 100L, exception.getMessage());
 
         verify(categoryRepository).findById(100L);
+        verify(categoryRepository, never()).delete(any());
+    }
+
+    @Test
+    void shouldThrowExceptionWhenDeletingCategoryWithAssociatedProducts() {
+        when(categoryRepository.findById(category.getId()))
+                .thenReturn(Optional.of(category));
+        when(productRepository.existsByCategoryId(10L))
+                .thenReturn(true);
+
+        CategoryHasProductsException exception =
+                assertThrows(CategoryHasProductsException.class,
+                        () -> categoryService.deleteCategory(10L));
+
+        assertEquals("Cannot delete category '" +
+                        category.getName() +
+                        "' because it has associated products.",
+                exception.getMessage());
+
+        verify(categoryRepository).findById(10L);
+        verify(productRepository).existsByCategoryId(10L);
         verify(categoryRepository, never()).delete(any());
     }
 }
