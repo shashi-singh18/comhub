@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -28,6 +29,7 @@ import java.math.BigDecimal;
         name = "Product Management",
         description = "APIs for managing products."
 )
+@SecurityRequirement(name = "bearerAuth")
 public class ProductController {
 
     private static final Logger logger =
